@@ -1,0 +1,23 @@
+{
+  "name": "authenticator",
+  "version": "0.0.0",
+  "authors": [
+    "Brandon Larkin <brandonlarkin@gmail.com>"
+  ],
+  "main": "index.html",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jssha": "~1.6.0",
+    "jquery": "~2.1.3",
+    "react": "~0.13.1",
+    "requirejs": "~2.1.16"
+  }
+}

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="import" href="lib/jsqrcode/src/imports.html">
+    <script src="bower_components/requirejs/require.js"></script>
+    <script>
+      requirejs.config({
+
+        paths: {
+          jQuery: 'bower_components/jquery/dist/jquery.min',
+          react: 'bower_components/react',
+          jsSHA: 'bower_components/jssha/src',
+          totp: 'lib/totp',
+          jsqrcode: 'lib/jsqrcode/src',
+          //this looks funny, but it's the rollup we need from CryptoJS
+          CryptoJS: 'lib/crypto-js-3.1.2/build/rollups/aes',
+          app: 'build'
+        },
+
+        shim: {
+          jQuery: {
+            exports: '$'
+          },
+          jsqrcode: {
+            deps: [
+              'lib/jsqrcode/src/grid',
+              'lib/jsqrcode/src/version',
+              'lib/jsqrcode/src/detector',
+              'lib/jsqrcode/src/formatinf',
+              'lib/jsqrcode/src/errorlevel',
+              'lib/jsqrcode/src/bitmat',
+              'lib/jsqrcode/src/datablock',
+              'lib/jsqrcode/src/bmparser',
+              'lib/jsqrcode/src/datamask',
+              'lib/jsqrcode/src/rsdecoder',
+              'lib/jsqrcode/src/gf256poly',
+              'lib/jsqrcode/src/gf256',
+              'lib/jsqrcode/src/decoder',
+              'lib/jsqrcode/src/qrcode',
+              'lib/jsqrcode/src/findpat',
+              'lib/jsqrcode/src/alignpat',
+              'lib/jsqrcode/src/databr'
+            ],
+            exports: 'qrcode'
+          },
+          CryptoJS: {
+            exports: 'CryptoJS'
+          }
+        }
+
+      });
+    </script>
+
+  </head>
+  <body>
+    <div id="app-container"></div>
+    <script>
+      require(['react/react', "app/AuthApp"], function(React, AuthApp) {
+        React.render(React.createElement(AuthApp), document.getElementById('app-container'));
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+
+        <style shim-shadowdom>
+
+            body {
+                font-family: RobotoDraft, 'Helvetica Neue', Helvetica, Arial;
+                font-size: 14px;
+                margin: 0;
+                padding: 24px;
+            }
+
+        </style>
+
+    </head>
+
+    <body unresolved>
+
+        <section>
+            <h2>Create...</h2>
+
+            <form id="createForm">
+                <input type="text" name="lookupPhrase" placeholder="Lookup phrase..." required/><br/>
+
+                <input type="password" name="secret" placeholder="Paste your secret..." required/><br/>
+
+                <input type="password" name="encryptionKey1" placeholder="Enter a phrase to encrypt your secret" required /></br>
+                <input type="password" name="encryptionKey2" placeholder="Confirm your encryption phrase" required /></br>
+
+                <button id="createButton">Create...</button>
+            </form>
+        </section>
+
+        <script src="bower_components/jquery/dist/jquery.min.js"></script>
+        <script src="bower_components/jssha/src/sha.js"></script>
+        <script src="lib/crypto-js-3.1.2/build/rollups/aes.js"></script>
+        <script src="lib/totp.js"></script>
+
+        <script>
+
+            function hex2ascii(hexx) {
+                var hex = hexx.toString();
+                var str = '';
+                for (var i = 0; i < hex.length; i += 2)
+                    str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+                return str;
+            }
+
+            $('#createButton').click(function(ev) {
+                ev.preventDefault();
+
+                var lookupPhrase = $('#createForm [name=lookupPhrase]').val();
+                var secret = $('#createForm [name=secret]').val();
+                var encryptionKey1 = $('#createForm [name=encryptionKey1]').val();
+                var encryptionKey2 = $('#createForm [name=encryptionKey2]').val();
+
+                //TODO: validate form.
+
+                var shaObj = new jsSHA("This is a Test", "TEXT");
+                var hash = shaObj.getHash("SHA-256", "HEX");
+
+                console.log("SHA: %o", hash);
+
+                var encrypted = CryptoJS.AES.encrypt(secret, encryptionKey1);
+
+                console.log(encrypted.toString())
+
+                encrypted = encrypted.toString();
+
+                console.log("encrypted: %o", encrypted);
+
+
+                console.log(hex2ascii(CryptoJS.AES.decrypt(encrypted, encryptionKey1).toString()));
+
+                showAuthenticatorStuff(secret);
+            });
+
+            function showAuthenticatorStuff(secret) {
+                var totp = new TOTP(secret);
+                $(totp).on('otpUpdated', function() {
+                    console.log("updated: %o", arguments);
+                });
+                totp.startTimer();
+            }
+        </script>
+
+    </body>
+
+</html>
