@@ -6,7 +6,7 @@ define(['react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'CryptoJS', 'jsSH
 
         getInitialState: function(){
             return {
-                currentStep: 3,
+                currentStep: 1,
                 qrCodeUrl: undefined,
                 otp: undefined,
                 encryptionPhrase: undefined,
@@ -17,7 +17,7 @@ define(['react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'CryptoJS', 'jsSH
         render: function() {
             return (
                 this.state.currentStep == 1?
-                <section>
+                <section key="step-1">
                     <h2>Create...</h2>
                     <h4>paste your QR code URL or Data URI</h4>
                     <input type="text" value={this.state.qrCodeUrl} onChange={this.secretUrlUpdated} /><br/>
@@ -37,7 +37,7 @@ define(['react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'CryptoJS', 'jsSH
                     }
                 </section>
                 : this.state.currentStep == 2?
-                <section>
+                <section key="step-2">
                     <h4>Enter a phrase to encrypt your secret</h4>
                     <input type="password" value={this.state.encryptionPhrase} onChange={this.encryptionPhraseUpdated} /><br/>
                     {
@@ -63,7 +63,7 @@ define(['react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'CryptoJS', 'jsSH
                             : <span>Please confirm your encryption phrase</span>
                     }
                 </section>
-                : <section>
+                : <section key="step-3">
                     <p>
                         OK, now enter a lookup phrase. This is just used to locate your 
                         (anonymous) authentication data. It can be long or short as long
