@@ -117,6 +117,17 @@ define(['react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'CryptoJS', 'jsSH
             });
         },
 
+        saveToCloud: function(ev) {
+            var lookupKey = this.state.storageKey;
+            var encryptionPassphrase = this.state.encryptionPhrase;
+            var newObject = this.state.otp;
+
+            StoreAnon.storeObject(lookupKey, newObject, encryptionPassphrase).done(function(url) {
+                console.log("i saved? %o", arguments)
+            }).fail(function(err) {
+                throw 'save failed: ' + err;
+            });
+        },
 
         encryptionPhraseUpdated: function(ev) {
             var encryptionPhrase = ev.target.value;
