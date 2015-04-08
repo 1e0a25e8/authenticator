@@ -1,6 +1,6 @@
-define(['react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'CryptoJS', 'jsSHA/sha1'], 
+define(['react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'CryptoJS', 'jsSHA/sha1', 'StoreAnon'], 
 
-    function(React, QrCodeDisplay, TotpDisplay, CryptoJS, jsSHA) {
+    function(React, QrCodeDisplay, TotpDisplay, CryptoJS, jsSHA, StoreAnon) {
 
     return React.createClass({
 
@@ -63,7 +63,8 @@ define(['react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'CryptoJS', 'jsSH
                             : <span>Please confirm your encryption phrase</span>
                     }
                 </section>
-                : <section key="step-3">
+                : this.state.currentStep == 3?
+                <section key="step-3">
                     <p>
                         OK, now enter a lookup phrase. This is just used to locate your 
                         (anonymous) authentication data. It can be long or short as long
@@ -80,6 +81,15 @@ define(['react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'CryptoJS', 'jsSH
                             <button onClick={this.saveToCloud}>Ready to save?</button>
                         </p>
                         : false
+                    }
+                </section>
+                :
+                // "step-4" is not really a step - it's the Read mode of the app...
+                <section key="step-4">
+                    {
+                        this.state.otp?
+                        <TotpDisplay otp={this.state.otp} />
+                        : <span>Loading your super secret TOTP data...</span>
                     }
                 </section>
 
@@ -122,11 +132,27 @@ define(['react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'CryptoJS', 'jsSH
             var encryptionPassphrase = this.state.encryptionPhrase;
             var newObject = this.state.otp;
 
-            StoreAnon.storeObject(lookupKey, newObject, encryptionPassphrase).done(function(url) {
-                console.log("i saved? %o", arguments)
-            }).fail(function(err) {
+            StoreAnon.storeObject(lookupKey, newObject, encryptionPassphrase).done((function(lookupKey) {
+                // use a whole new state object because it's nice to clear
+                // out all the in-progress data that we had during creation steps
+                var newState = this.getInitialState();
+                newState.currentStep = 4;
+                this.setState(newState);
+                this.loadTotp(lookupKey, encryptionPassphrase);
+            }).bind(this)).fail(function(err) {
                 throw 'save failed: ' + err;
             });
+        },
+
+        loadTotp: function(lookupKey, encryptionPassphrase) {
+            StoreAnon.fetchObject(lookupKey, encryptionPassphrase).done((function(otp) {
+                this.setState({
+                    otp: otp
+                });
+            }).bind(this)).fail(function() {
+                console.log('error getting totp info: %o', arguments);
+                throw 'whoops'
+            })
         },
 
         encryptionPhraseUpdated: function(ev) {
@@ -158,6 +184,7 @@ define(['react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'CryptoJS', 'jsSH
             }
 
             this.setState({
+                encryptionPhrase: encryptionConfirmation,
                 decryptedSecret: decryptedSecret
             });
         },
