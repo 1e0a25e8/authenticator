@@ -83,7 +83,9 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'Crypto
                 return (
                     this.state.currentStep == 1?
                     <section key="step-1">
-                        <h2>Save your 2-factor authentication secret in the cloud</h2>
+                        <div className="page-header">
+                            <h2>Save your 2-factor authentication secret in the cloud</h2>
+                        </div>
                         <p className="lead">Paste your QR code URL or Data URI here:</p>
                         <p>
                             <input type="text" value={this.state.qrCodeUrl} onChange={this.secretUrlUpdated} /><br/>
@@ -97,7 +99,7 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'Crypto
                                             :false
                                     }
                                     </div>
-                                    <div className="col-md-4">
+                                    <div className="col-md-9">
                                     {
                                         this.state.otp? 
                                             <div>
@@ -117,31 +119,35 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'Crypto
                     </section>
                     : this.state.currentStep == 2?
                     <section key="step-2">
-                        <h4>Enter a phrase to encrypt your secret</h4>
-                        <input type="password" value={this.state.encryptionPhrase} onChange={this.encryptionPhraseUpdated} /><br/>
-                        {
-                            this.state.encryptedSecret?
-                            <div>
-                                Your encrypted secret <small>(this is what we'll store on the server)</small>:<br/>
-                                <span>{this.state.encryptedSecret}</span>
+                        <div className="page-header">
+                            <h2>Encrypt your secret</h2>
+                        </div>
+                        <div className="row">
+                            <div className="col-md-3">
+                                Enter a phrase to encrypt your secret:
                             </div>
-                            : false
-                        }
+                            <div className="col-md-9">
+                                <input type="password" name="encryptionPhrase1" onChange={this.encryptionPhraseUpdated} size="50"/>
+                            </div>
+                        </div>
 
-                        <h4>Re-type your encryption secret</h4>
-                        <input type="password" onChange={this.encryptionConfirmationUpdated} /><br />
-                        {
-                            this.state.decryptedSecret?
-                                this.state.decryptedSecret == this.state.qrCodeUrl?
-                                    <div>
-                                        OK, your encryption phrases match!
-                                        Press the button to save your encrypted data to the cloud...
-                                        <button onClick={this.step2done}>Continue...</button>
-                                    </div>
-                                    : <span style="color: red;">Keep typing...</span>
-                                : <span>Please confirm your encryption phrase</span>
+                        <div className="row">
+                            <div className="col-md-3">
+                                Confirm your encryption phrase:
+                            </div>
+                            <div className="col-md-9">
+                                <input type="password" name="encryptionPhrase2" onChange={this.encryptionPhraseUpdated} size="50"/>
+                            </div>
+                        </div>
+
+                        { this.state.encryptionPhrase?
+                            <div className="row">
+                                <p>Encryption phrases match!</p>
+                                <p><button onClick={this.step2done}>Continue to save to cloud...</button></p>
+                            </div> : false
                         }
-                    </section>
+                     </section>
+ 
                     : this.state.currentStep == 3?
                     <section key="step-3">
                         <p>
@@ -244,36 +250,14 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'Crypto
         },
 
         encryptionPhraseUpdated: function(ev) {
-            var encryptionPhrase = ev.target.value;
-            var encryptedSecret = undefined;
-            if (encryptionPhrase) {
+            var encryptionPhrase1 = this.getDOMNode().querySelector('[name=encryptionPhrase1]').value;
+            var encryptionPhrase2 = this.getDOMNode().querySelector('[name=encryptionPhrase2]').value;
 
-                var secret = this.state.qrCodeUrl;
-
-                encryptedSecret = CryptoJS.AES.encrypt(secret, encryptionPhrase).toString();
-            }
+            var encryptionPhrase = encryptionPhrase1 === encryptionPhrase2?
+                encryptionPhrase1 : undefined;
 
             this.setState({
-                encryptedSecret: encryptedSecret
-            });
-        },
-
-        encryptionConfirmationUpdated: function(ev) {
-            var encryptionConfirmation = ev.target.value;
-
-            var decryptedSecret = CryptoJS.AES.decrypt(this.state.encryptedSecret, encryptionConfirmation);
-
-            try {
-                decryptedSecret = decryptedSecret.toString(CryptoJS.enc.Utf8);
-            } catch (e) {
-                // if an error was thrown on this line, the decrypion failed.
-                // set decryptedSecret to blank
-                decryptedSecret = undefined;
-            }
-
-            this.setState({
-                encryptionPhrase: encryptionConfirmation,
-                decryptedSecret: decryptedSecret
+                encryptionPhrase: encryptionPhrase
             });
         },
 
