@@ -149,28 +149,48 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/
  
                     : this.state.currentStep == 3?
                     <section key="step-3">
-                        <p>
-                            OK, now enter a lookup phrase. This is just used to locate your 
-                            (anonymous) authentication data. It can be long or short as long
-                            nobody else has used it and you remember it.
+                        <div className="page-header">
+                            <h2>Enter a lookup phrase</h2>
+                        </div>
+
+                        <p className="lead">
+                            How do you want to locate your authentication data?
                         </p>
 
-                        <input type="text" name="lookupPhrase1" onChange={this.lookupPhraseUpdated} /><br/>
-                        <input type="text" name="lookupPhrase2" onChange={this.lookupPhraseUpdated} />
+                        <p>
+                            Enter a name or phrase that will be used to locate your authentication
+                            data. This could be an account name or something more obscure. This phrase
+                            never leaves your browser -- we only save a SHA hash of it. If you forget
+                            your lookup phrase, your data is lost forever.
+                        </p>
+
+                        <div className="row">
+                            <div className="col-md-3">
+                                Your lookup phrase:
+                            </div>
+                            <div className="col-md-9">
+                                <input type="text" onChange={this.lookupPhraseUpdated} size="50"/>
+                            </div>
+                        </div>
 
                         {
                             this.state.storageKey? 
-                            <p>
-                                OK! Your lookup phrase looks good... ({this.state.storageKey})
-                                <button onClick={this.saveToCloud}>Ready to save?</button>
-                            </p>
+                            <div className="row">
+                                <p>
+                                    OK! Your lookup phrase looks good...
+                                </p>
+
+                                <p>
+                                    <button onClick={this.saveToCloud}>Save now.</button>
+                                </p>
+                            </div>
                             : false
                         }
                     </section>
                     :
                     <section>
                         <div className="page-header">
-                            <h2>OK!</h2>
+                            <h2>Success!</h2>
                         </div>
 
                         <p className="lead">Your encrypted TOTP data is saved.</p>
@@ -203,13 +223,12 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/
             });
         },
 
-        lookupPhraseUpdated: function() {
+        lookupPhraseUpdated: function(ev) {
             var storageKey = undefined;
-            var lookupPhrase1 = this.getDOMNode().querySelector('[name=lookupPhrase1]').value;
-            var lookupPhrase2 = this.getDOMNode().querySelector('[name=lookupPhrase2]').value;
+            var lookupPhrase = ev.target.value;
 
-            if (lookupPhrase1 === lookupPhrase2) {
-                var shaObj = new jsSHA(lookupPhrase1, "TEXT");
+            if (lookupPhrase.trim()) {
+                var shaObj = new jsSHA(lookupPhrase, "TEXT");
                 storageKey = shaObj.getHash("SHA-1", "HEX");
             }
 
