@@ -1,6 +1,6 @@
-define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'CryptoJS', 'jsSHA/sha1', 'StoreAnon'], 
+define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/sha1', 'StoreAnon'], 
 
-    function($, React, QrCodeDisplay, TotpDisplay, CryptoJS, jsSHA, StoreAnon) {
+    function($, React, QrCodeDisplay, TotpDisplay, jsSHA, StoreAnon) {
 
     return React.createClass({
 
@@ -22,7 +22,6 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'Crypto
                 qrCodeUrl: undefined,
                 otp: undefined,
                 encryptionPhrase: undefined,
-                encryptedSecret: undefined,
                 storageKey: undefined
             }
         },
@@ -230,8 +229,7 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'Crypto
                     currentStep: 4,
                     qrCodeUrl: undefined,
                     otp: undefined,
-                    encryptionPhrase: undefined,
-                    encryptedSecret: undefined
+                    encryptionPhrase: undefined
                 });
             }).bind(this)).fail(function(err) {
                 throw 'save failed: ' + err;
