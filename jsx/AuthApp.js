@@ -83,23 +83,37 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'Crypto
                 return (
                     this.state.currentStep == 1?
                     <section key="step-1">
-                        <h2>Create...</h2>
-                        <h4>paste your QR code URL or Data URI</h4>
-                        <input type="text" value={this.state.qrCodeUrl} onChange={this.secretUrlUpdated} /><br/>
-                        {
-                            this.state.qrCodeUrl?
-                                <QrCodeDisplay url={this.state.qrCodeUrl} />
-                                :false
-                        }
-                        {
-                            this.state.otp? 
-                                <div>
-                                    <TotpDisplay otp={this.state.otp} />
-                                    <button onClick={this.step1done}>Looks good, continue...</button>
-                                    <button onClick={this.step1cancel}>Start over</button>
+                        <h2>Save your 2-factor authentication secret in the cloud</h2>
+                        <p className="lead">Paste your QR code URL or Data URI here:</p>
+                        <p>
+                            <input type="text" value={this.state.qrCodeUrl} onChange={this.secretUrlUpdated} /><br/>
+
+                            <div className="container">
+                                <div className="row">
+                                    <div className="col-md-3">
+                                    {
+                                        this.state.qrCodeUrl?
+                                            <QrCodeDisplay url={this.state.qrCodeUrl} />
+                                            :false
+                                    }
+                                    </div>
+                                    <div className="col-md-4">
+                                    {
+                                        this.state.otp? 
+                                            <div>
+                                                <TotpDisplay otp={this.state.otp} />
+                                            </div>
+                                             :false
+                                    }
+                                    </div>
                                 </div>
-                                 :false
-                        }
+                                <div className="row">
+                                    {this.state.otp?
+                                        <button onClick={this.step1done}>Looks good, continue...</button>
+                                        : false}
+                                </div>
+                            </div>
+                        </p>
                     </section>
                     : this.state.currentStep == 2?
                     <section key="step-2">
@@ -176,10 +190,6 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'Crypto
             this.setState({
                 currentStep: 2
             });
-        },
-
-        step1cancel: function() {
-            this.replaceState(this.getInitialState());
         },
 
         step2done: function() {
