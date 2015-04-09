@@ -1,99 +1,175 @@
-define(['react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'CryptoJS', 'jsSHA/sha1', 'StoreAnon'], 
+define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'CryptoJS', 'jsSHA/sha1', 'StoreAnon'], 
 
-    function(React, QrCodeDisplay, TotpDisplay, CryptoJS, jsSHA, StoreAnon) {
+    function($, React, QrCodeDisplay, TotpDisplay, CryptoJS, jsSHA, StoreAnon) {
 
     return React.createClass({
 
+        componentWillMount: function() {
+            $(window).on('hashchange', (function(ev) {
+                var newTab = window.location.hash.substring(1);
+                if (this.state.selectedTab !== newTab) {
+                    var newState = this.getInitialState();
+                    newState.selectedTab = newTab;
+                    this.setState(newState);
+                }
+            }).bind(this));
+        },
+
         getInitialState: function(){
             return {
+                selectedTab: window.location.hash.substring(1) || 'create',
                 currentStep: 1,
                 qrCodeUrl: undefined,
                 otp: undefined,
                 encryptionPhrase: undefined,
-                encryptedSecret: undefined
+                encryptedSecret: undefined,
+                storageKey: undefined
             }
         },
-
+   
         render: function() {
-            return (
-                this.state.currentStep == 1?
-                <section key="step-1">
-                    <h2>Create...</h2>
-                    <h4>paste your QR code URL or Data URI</h4>
-                    <input type="text" value={this.state.qrCodeUrl} onChange={this.secretUrlUpdated} /><br/>
-                    {
-                        this.state.qrCodeUrl?
-                            <QrCodeDisplay url={this.state.qrCodeUrl} />
-                            :false
-                    }
-                    {
-                        this.state.otp? 
-                            <div>
-                                <TotpDisplay otp={this.state.otp} />
-                                <button onClick={this.step1done}>Looks good, continue...</button>
-                                <button onClick={this.step1cancel}>Start over</button>
-                            </div>
-                             :false
-                    }
-                </section>
-                : this.state.currentStep == 2?
-                <section key="step-2">
-                    <h4>Enter a phrase to encrypt your secret</h4>
-                    <input type="password" value={this.state.encryptionPhrase} onChange={this.encryptionPhraseUpdated} /><br/>
-                    {
-                        this.state.encryptedSecret?
-                        <div>
-                            Your encrypted secret <small>(this is what we'll store on the server)</small>:<br/>
-                            <span>{this.state.encryptedSecret}</span>
+            var selectedTab = this.state.selectedTab;
+            if (selectedTab === 'contact') {
+                return (
+                    <section key="contact">
+                        <div className="page-header">
+                            <h2>Email us...</h2>
                         </div>
-                        : false
-                    }
-
-                    <h4>Re-type your encryption secret</h4>
-                    <input type="password" onChange={this.encryptionConfirmationUpdated} /><br />
-                    {
-                        this.state.decryptedSecret?
-                            this.state.decryptedSecret == this.state.qrCodeUrl?
-                                <div>
-                                    OK, your encryption phrases match!
-                                    Press the button to save your encrypted data to the cloud...
-                                    <button onClick={this.step2done}>Continue...</button>
-                                </div>
-                                : <span style="color: red;">Keep typing...</span>
-                            : <span>Please confirm your encryption phrase</span>
-                    }
-                </section>
-                : this.state.currentStep == 3?
-                <section key="step-3">
-                    <p>
-                        OK, now enter a lookup phrase. This is just used to locate your 
-                        (anonymous) authentication data. It can be long or short as long
-                        nobody else has used it and you remember it.
-                    </p>
-
-                    <input type="text" name="lookupPhrase1" onChange={this.lookupPhraseUpdated} /><br/>
-                    <input type="text" name="lookupPhrase2" onChange={this.lookupPhraseUpdated} />
-
-                    {
-                        this.state.storageKey? 
-                        <p>
-                            OK! Your lookup phrase looks good... ({this.state.storageKey})
-                            <button onClick={this.saveToCloud}>Ready to save?</button>
+                        <p className="lead">
+                            <a href={"mailto:" + this.props.contactEmail}>{this.props.contactEmail}</a>
                         </p>
-                        : false
-                    }
-                </section>
-                :
-                // "step-4" is not really a step - it's the Read mode of the app...
-                <section key="step-4">
-                    {
-                        this.state.otp?
-                        <TotpDisplay otp={this.state.otp} />
-                        : <span>Loading your super secret TOTP data...</span>
-                    }
-                </section>
+                    </section>
+                )
+            } else if (selectedTab === 'why') {
+                return (
+                    <section key="why">
+                        <div className="page-header">
+                            <h2>Why does this site exist?</h2>
+                        </div>
+                        <p className="lead">
+                            Because I broke my phone. I use 2-factor authentication for my Google account
+                            and some other things.
+                        </p>
+                        <p>
+                            If I somehow lose access to my laptop or want to access my Gmail from a new location,
+                            I'm screwed without my phone.
+                        </p>
+                        <p>
+                            I want a way to access my 2-factor auth credentials in the case that I have lost
+                            access to <em>every</em> service that's important to me. Anonymous. And I don't
+                            want to trust some site operator with my data.
+                        </p>
+                        <p>
+                            This site uses AES-256 encryption in Javascript. None of your unencrypted info
+                            ever leaves your browser. We store your stuff 100% anonymously. Any questions,
+                            check the code out on <a href="https://github.com/1e0a25e8/authenticator">Github</a>.
+                        </p>
+                        <p>
+                            Please <a href={"mailto:" + this.props.contactEmail}>email</a> feedback!
+                        </p>
+                    </section>
+                )
+            } else if (selectedTab === 'retrieve') {
+                return (
+                    <section key="retrieve">
+                        {
+                            this.state.otp?
+                            <TotpDisplay otp={this.state.otp} />
+                            : <span>Loading your super secret TOTP data...</span>
+                        }
+                    </section>
+                );
+            } else {
+                return (
+                    this.state.currentStep == 1?
+                    <section key="step-1">
+                        <h2>Create...</h2>
+                        <h4>paste your QR code URL or Data URI</h4>
+                        <input type="text" value={this.state.qrCodeUrl} onChange={this.secretUrlUpdated} /><br/>
+                        {
+                            this.state.qrCodeUrl?
+                                <QrCodeDisplay url={this.state.qrCodeUrl} />
+                                :false
+                        }
+                        {
+                            this.state.otp? 
+                                <div>
+                                    <TotpDisplay otp={this.state.otp} />
+                                    <button onClick={this.step1done}>Looks good, continue...</button>
+                                    <button onClick={this.step1cancel}>Start over</button>
+                                </div>
+                                 :false
+                        }
+                    </section>
+                    : this.state.currentStep == 2?
+                    <section key="step-2">
+                        <h4>Enter a phrase to encrypt your secret</h4>
+                        <input type="password" value={this.state.encryptionPhrase} onChange={this.encryptionPhraseUpdated} /><br/>
+                        {
+                            this.state.encryptedSecret?
+                            <div>
+                                Your encrypted secret <small>(this is what we'll store on the server)</small>:<br/>
+                                <span>{this.state.encryptedSecret}</span>
+                            </div>
+                            : false
+                        }
 
-            );
+                        <h4>Re-type your encryption secret</h4>
+                        <input type="password" onChange={this.encryptionConfirmationUpdated} /><br />
+                        {
+                            this.state.decryptedSecret?
+                                this.state.decryptedSecret == this.state.qrCodeUrl?
+                                    <div>
+                                        OK, your encryption phrases match!
+                                        Press the button to save your encrypted data to the cloud...
+                                        <button onClick={this.step2done}>Continue...</button>
+                                    </div>
+                                    : <span style="color: red;">Keep typing...</span>
+                                : <span>Please confirm your encryption phrase</span>
+                        }
+                    </section>
+                    : this.state.currentStep == 3?
+                    <section key="step-3">
+                        <p>
+                            OK, now enter a lookup phrase. This is just used to locate your 
+                            (anonymous) authentication data. It can be long or short as long
+                            nobody else has used it and you remember it.
+                        </p>
+
+                        <input type="text" name="lookupPhrase1" onChange={this.lookupPhraseUpdated} /><br/>
+                        <input type="text" name="lookupPhrase2" onChange={this.lookupPhraseUpdated} />
+
+                        {
+                            this.state.storageKey? 
+                            <p>
+                                OK! Your lookup phrase looks good... ({this.state.storageKey})
+                                <button onClick={this.saveToCloud}>Ready to save?</button>
+                            </p>
+                            : false
+                        }
+                    </section>
+                    :
+                    <section>
+                        <div className="page-header">
+                            <h2>OK!</h2>
+                        </div>
+
+                        <p className="lead">Your encrypted TOTP data is saved.</p>
+
+                        <p>
+                            You can retrieve it using your lookup phrase or directly here:
+                            <a href={this.props.siteLocation + "/?key=" + this.state.storageKey + "#retrieve"}>
+                                {this.props.siteLocation + "/?key=" + this.state.storageKey + "#retrieve"}
+                            </a>
+                        </p>
+
+                        <p>
+                            Thanks for using our site! <a href={this.props.contactEmail}>Email</a> for feedback...
+                        </p>
+                    </section>
+
+                );
+            }
         },
 
         step1done: function() {
@@ -133,12 +209,14 @@ define(['react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'CryptoJS', 'jsSH
             var newObject = this.state.otp;
 
             StoreAnon.storeObject(lookupKey, newObject, encryptionPassphrase).done((function(lookupKey) {
-                // use a whole new state object because it's nice to clear
-                // out all the in-progress data that we had during creation steps
-                var newState = this.getInitialState();
-                newState.currentStep = 4;
-                this.setState(newState);
-                this.loadTotp(lookupKey, encryptionPassphrase);
+                // ok, we're done! update step and clear out all the private-ish data.
+                this.setState({
+                    currentStep: 4,
+                    qrCodeUrl: undefined,
+                    otp: undefined,
+                    encryptionPhrase: undefined,
+                    encryptedSecret: undefined
+                });
             }).bind(this)).fail(function(err) {
                 throw 'save failed: ' + err;
             });
