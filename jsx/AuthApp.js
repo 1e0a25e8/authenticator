@@ -13,6 +13,16 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/
                     this.setState(newState);
                 }
             }).bind(this));
+
+            if (this.state.selectedTab === 'retrieve' && window.location.search) {
+                var keyPattern = /key=([a-z0-9]+)/;
+                var match = keyPattern.exec(window.location.search);
+                if (match) {
+                    this.setState({
+                        storageKey: match[1]
+                    });
+                }
+            }
         },
 
         getInitialState: function(){
