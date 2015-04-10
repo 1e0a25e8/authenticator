@@ -11,6 +11,10 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/
                     var newState = this.getInitialState();
                     newState.selectedTab = newTab;
                     this.setState(newState);
+
+                    //TODO: need a better way to manage url state
+                    //if you're changing tabs, clear out query string.
+                    window.location.search = '';
                 }
             }).bind(this));
 
@@ -119,7 +123,7 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/
                                 Your encryption phrase:
                             </div>
                             <div className="col-md-9">
-                                <input type="text" name="encryptionPhrase" size="50" onChange={this.decryptionPhraseUpdated} />
+                                <input type="password" name="encryptionPhrase" size="50" onChange={this.decryptionPhraseUpdated} />
                             </div>
                         </div>
                         <div className="row">
@@ -260,7 +264,7 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/
                         <p className="lead">Your encrypted TOTP data is saved.</p>
 
                         <p>
-                            You can retrieve it using your lookup phrase or directly here:
+                            You can retrieve it using your lookup phrase or directly here: &nbsp;
                             <a href={this.props.siteLocation + "/?key=" + this.state.storageKey + "#retrieve"}>
                                 {this.props.siteLocation + "/?key=" + this.state.storageKey + "#retrieve"}
                             </a>
