@@ -22,7 +22,10 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/
                 qrCodeUrl: undefined,
                 otp: undefined,
                 encryptionPhrase: undefined,
-                storageKey: undefined
+                storageKey: undefined,
+                // for retrieve steps:
+                lookupPhrase: undefined,
+                validationMessage: undefined
             }
         },
    
@@ -70,12 +73,63 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/
                 )
             } else if (selectedTab === 'retrieve') {
                 return (
-                    <section key="retrieve">
-                        {
-                            this.state.otp?
+                    !this.state.storageKey?
+                    <section key="retrieve-lookup">
+                        <div className="page-header">
+                            <h2>Retrieve your saved authentication data</h2>
+                        </div>
+                        <p className="lead">
+                            Enter your lookup phrase to fetch your data
+                        </p>
+                        {this.state.validationMessage? <p className="alert-danger">{this.state.validationMessage}</p> : ''}
+                        <div className="row">
+                            <div className="col-md-3">
+                                Your lookup phrase:
+                            </div>
+                            <div className="col-md-9">
+                                <input type="text" name="lookupPhrase" size="50" onChange={this.retrievalPhraseUpdated} />
+                            </div>
+                        </div>
+                        <div className="row">
+                            <button disabled={!this.state.lookupPhrase} onClick={this.retrievalPhraseSubmitted}>Look up my data</button>
+                        </div>
+                    </section>
+                    :
+                    !this.state.otp?
+                    <section key="retrieve-decrypted">
+                        <div className="page-header">
+                            <h2>Decrypt your data</h2>
+                        </div>
+                        <p className="lead">
+                            OK, we've found your data, now enter your encryption phrase to decrypt it.
+                        </p>
+                        {this.state.validationMessage? <p className="alert-danger">{this.state.validationMessage}</p> : ''}
+                        <div className="row">
+                            <div className="col-md-3">
+                                Your encryption phrase:
+                            </div>
+                            <div className="col-md-9">
+                                <input type="text" name="encryptionPhrase" size="50" onChange={this.decryptionPhraseUpdated} />
+                            </div>
+                        </div>
+                        <div className="row">
+                            <button disabled={!this.state.encryptionPhrase} onClick={this.decryptionPhraseSubmitted}>Decrypt</button>
+                        </div>
+                    </section>
+                    :
+                    <section key="retrieve-totp">
+                        <div className="page-header">
+                            <h2>Success!</h2>
+                        </div>
+                        <p className="lead">
+                            Your 2-factor authentication credentials...
+                        </p>
+                        <p>
                             <TotpDisplay otp={this.state.otp} />
-                            : <span>Loading your super secret TOTP data...</span>
-                        }
+                        </p>
+                        <p>
+                            Thanks for using our site! <a href={"mailto:" + this.props.contactEmail}>Email</a> for feedback...
+                        </p>
                     </section>
                 );
             } else {
@@ -181,7 +235,7 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/
                                 </p>
 
                                 <p>
-                                    <button onClick={this.saveToCloud}>Save now.</button>
+                                    <button onClick={this.saveToCloud}>Save now</button>
                                 </p>
                             </div>
                             : false
@@ -203,7 +257,7 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/
                         </p>
 
                         <p>
-                            Thanks for using our site! <a href={this.props.contactEmail}>Email</a> for feedback...
+                            Thanks for using our site! <a href={"mailto:" + this.props.contactEmail}>Email</a> for feedback...
                         </p>
                     </section>
 
@@ -228,8 +282,7 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/
             var lookupPhrase = ev.target.value;
 
             if (lookupPhrase.trim()) {
-                var shaObj = new jsSHA(lookupPhrase, "TEXT");
-                storageKey = shaObj.getHash("SHA-1", "HEX");
+                storageKey = this.createStorageKey(lookupPhrase);
             }
 
             this.setState({
@@ -237,12 +290,17 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/
             });
         },
 
+        createStorageKey: function(lookupPhrase) {
+            var shaObj = new jsSHA(lookupPhrase, "TEXT");
+            return shaObj.getHash("SHA-1", "HEX");
+        },
+
         saveToCloud: function(ev) {
             var lookupKey = this.state.storageKey;
-            var encryptionPassphrase = this.state.encryptionPhrase;
+            var encryptionPhrase = this.state.encryptionPhrase;
             var newObject = this.state.otp;
 
-            StoreAnon.storeObject(lookupKey, newObject, encryptionPassphrase).done((function(lookupKey) {
+            StoreAnon.storeObject(lookupKey, newObject, encryptionPhrase).done((function(lookupKey) {
                 // ok, we're done! update step and clear out all the private-ish data.
                 this.setState({
                     currentStep: 4,
@@ -255,17 +313,6 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/
             });
         },
 
-        loadTotp: function(lookupKey, encryptionPassphrase) {
-            StoreAnon.fetchObject(lookupKey, encryptionPassphrase).done((function(otp) {
-                this.setState({
-                    otp: otp
-                });
-            }).bind(this)).fail(function() {
-                console.log('error getting totp info: %o', arguments);
-                throw 'whoops'
-            })
-        },
-
         encryptionPhraseUpdated: function(ev) {
             var encryptionPhrase1 = this.getDOMNode().querySelector('[name=encryptionPhrase1]').value;
             var encryptionPhrase2 = this.getDOMNode().querySelector('[name=encryptionPhrase2]').value;
@@ -276,6 +323,71 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/
             this.setState({
                 encryptionPhrase: encryptionPhrase
             });
+        },
+
+        retrievalPhraseUpdated: function(ev) {
+            var lookupPhrase = ev.target.value;
+            var validationMessage = undefined;
+
+            if (!lookupPhrase) {
+                validationMessage = 'Please enter your lookup phrase';
+            }
+            
+            this.setState({
+                validationMessage: validationMessage,
+                lookupPhrase: lookupPhrase
+            });
+        },
+
+        retrievalPhraseSubmitted: function(ev) {
+            var storageKey = this.createStorageKey(this.state.lookupPhrase);
+            StoreAnon.objectExists(storageKey).done((function(exists) {
+                if (exists) {
+                    this.setState({
+                        validationMessage: undefined,
+                        storageKey: storageKey
+                    });
+                } else {
+                    this.setState({
+                        validationMessage: 'No data found for that lookup key. Try again?'
+                    });
+                }
+
+            }).bind(this)).fail((function(err) {
+                console.error('error testing object existence: %o', err);
+                this.setState({
+                    validationMessage: 'Error retrieving object'
+                })
+            }).bind(this));
+        },
+
+        decryptionPhraseUpdated: function(ev) {
+            var decryptionPhrase = ev.target.value;
+            var validationMessage = undefined;
+
+            if (!decryptionPhrase) {
+                validationMessage = 'Please enter your decryptionPhrase phrase';
+            }
+
+            this.setState({
+                validationMessage: validationMessage,
+                encryptionPhrase: decryptionPhrase
+            });
+        },
+
+        decryptionPhraseSubmitted: function() {
+            var lookupKey = this.state.storageKey;
+            var decryptionPhrase = this.state.encryptionPhrase;
+            StoreAnon.fetchObject(lookupKey, decryptionPhrase).done((function(otp) {
+                this.setState({
+                    validationMessage: undefined,
+                    otp: otp
+                });
+            }).bind(this)).fail((function(msg) {
+                this.setState({
+                    validationMessage: 'Error opening up your data: ' + msg
+                })
+            }).bind(this));
         },
 
         secretUrlUpdated: function(ev) {

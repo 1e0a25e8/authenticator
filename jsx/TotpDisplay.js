@@ -23,7 +23,7 @@ define(['react/react', 'totp'], function(React, TOTP) {
                 <ul>
                     <li>Issuer: {this.props.otp.issuer}</li>
                     <li>Account: {this.props.otp.account}</li>
-                    <li>Time-based auth code: {this.state.authCode}</li>
+                    <li>Time-based auth code: <strong>{this.state.authCode}</strong></li>
                 </ul>
             );
         }
