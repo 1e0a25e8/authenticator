@@ -11,10 +11,6 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/
                     var newState = this.getInitialState();
                     newState.selectedTab = newTab;
                     this.setState(newState);
-
-                    //TODO: need a better way to manage url state
-                    //if you're changing tabs, clear out query string.
-                    window.location.search = '';
                 }
             }).bind(this));
 
