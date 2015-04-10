@@ -154,6 +154,7 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/
                             <h2>Save your 2-factor authentication secret in the cloud</h2>
                         </div>
                         <p className="lead">Paste your QR code URL or Data URI here:</p>
+                        {this.state.validationMessage? <p className="alert-danger">{this.state.validationMessage}</p> : ''}
                         <p>
                             <input type="text" value={this.state.qrCodeUrl} onChange={this.secretUrlUpdated} /><br/>
 
@@ -407,7 +408,7 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/
         secretUrlUpdated: function(ev) {
             var qrCodeUrl = ev.target.value;
 
-            qrcode.callback = (function(qrCodeData) {
+            qrcode.decode(qrCodeUrl).then((function(qrCodeData) {
                 // otpauth://totp/Google%3Asomebody%40gmail.com?secret=p5ytcate53w3r5anysh3kuinuhz2b2wp&issuer=Google
                 var otpAuthPattern = /otpauth\:\/\/totp\/(.*)/;
                 var match = otpAuthPattern.exec(qrCodeData);
@@ -422,16 +423,19 @@ define(['jQuery', 'react/react', 'app/QrCodeDisplay', 'app/TotpDisplay', 'jsSHA/
                 var authDataMatch = authDataPattern.exec(authData);
 
                 this.setState({
+                    validationMessage: undefined,
                     otp: {
                         issuer: authDataMatch[1],
                         account: authDataMatch[2],
                         secret: authDataMatch[3]
                     }
                 });
-            }).bind(this);
-
-            // TODO: wrap jsqrcode to better handle errors.
-            var result = qrcode.decode(qrCodeUrl);
+            }).bind(this), (function(error) {
+                this.setState({
+                    validationMessage: 'Please enter a valid QR code URI',
+                    otp: undefined
+                })
+            }).bind(this));
 
             this.setState({
                 qrCodeUrl: qrCodeUrl
