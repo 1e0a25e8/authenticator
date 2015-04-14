@@ -19,6 +19,7 @@
     "jquery": "~2.1.3",
     "react": "~0.13.1",
     "requirejs": "~2.1.16",
-    "bootstrap": "~3.3.4"
+    "bootstrap": "~3.3.4",
+    "jsqrcode": "git@github.com:1e0a25e8/jsqrcode.git#0.0.2"
   }
 }

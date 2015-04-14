@@ -17,7 +17,7 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-    <link rel="import" href="lib/jsqrcode/src/imports.html">
+    <link rel="import" href="bower_components/jsqrcode/src/imports.html">
     <script src="bower_components/requirejs/require.js"></script>
     <script>
       requirejs.config({
@@ -42,28 +42,28 @@
           bootstrap: {
             deps: ['jQuery']
           },
-          jsqrcode: {
-            deps: [
-              'lib/jsqrcode/src/grid',
-              'lib/jsqrcode/src/version',
-              'lib/jsqrcode/src/detector',
-              'lib/jsqrcode/src/formatinf',
-              'lib/jsqrcode/src/errorlevel',
-              'lib/jsqrcode/src/bitmat',
-              'lib/jsqrcode/src/datablock',
-              'lib/jsqrcode/src/bmparser',
-              'lib/jsqrcode/src/datamask',
-              'lib/jsqrcode/src/rsdecoder',
-              'lib/jsqrcode/src/gf256poly',
-              'lib/jsqrcode/src/gf256',
-              'lib/jsqrcode/src/decoder',
-              'lib/jsqrcode/src/qrcode',
-              'lib/jsqrcode/src/findpat',
-              'lib/jsqrcode/src/alignpat',
-              'lib/jsqrcode/src/databr'
-            ],
-            exports: 'qrcode'
-          },
+          // jsqrcode: {
+          //   deps: [
+          //     'lib/jsqrcode/src/grid',
+          //     'lib/jsqrcode/src/version',
+          //     'lib/jsqrcode/src/detector',
+          //     'lib/jsqrcode/src/formatinf',
+          //     'lib/jsqrcode/src/errorlevel',
+          //     'lib/jsqrcode/src/bitmat',
+          //     'lib/jsqrcode/src/datablock',
+          //     'lib/jsqrcode/src/bmparser',
+          //     'lib/jsqrcode/src/datamask',
+          //     'lib/jsqrcode/src/rsdecoder',
+          //     'lib/jsqrcode/src/gf256poly',
+          //     'lib/jsqrcode/src/gf256',
+          //     'lib/jsqrcode/src/decoder',
+          //     'lib/jsqrcode/src/qrcode',
+          //     'lib/jsqrcode/src/findpat',
+          //     'lib/jsqrcode/src/alignpat',
+          //     'lib/jsqrcode/src/databr'
+          //   ],
+          //   exports: 'qrcode'
+          // },
           CryptoJS: {
             exports: 'CryptoJS'
           }
