@@ -4,6 +4,7 @@
   "devDependencies": {
     "grunt": "~0.4.5",
     "grunt-bower-task": "~0.4.0",
-    "grunt-react": "~0.12.1"
+    "grunt-react": "~0.12.1",
+    "grunt-aws-s3": "~0.12.3"
   }
 }
