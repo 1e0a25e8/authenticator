@@ -7,16 +7,30 @@ module.exports = function(grunt) {
       install: {
         options: {
           copy: false
-//          cleanBowerDir: true
         }
+      }
+    },
+
+    react: {
+      dynamic_mappings: {
+        files: [
+          {
+            expand: true,
+            cwd: 'jsx',
+            src: ['**/*.js'],
+            dest: 'build',
+            ext: '.js'
+          }
+        ]
       }
     }
   });
 
   // Load the plugin that provides the "uglify" task.
   grunt.loadNpmTasks('grunt-bower-task');
+  grunt.loadNpmTasks('grunt-react');
 
   // Default task(s).
-  grunt.registerTask('build', ['bower']);
+  grunt.registerTask('build', ['bower', 'react']);
 
 };
