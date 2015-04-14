@@ -1,0 +1,8 @@
+{
+  "name": "2factor4.me",
+  "version": "0.0.1",
+  "devDependencies": {
+    "grunt": "~0.4.5",
+    "grunt-bower-task": "~0.4.0"
+  }
+}
